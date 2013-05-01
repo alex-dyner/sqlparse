@@ -3,25 +3,38 @@
 from sqlparse.sql import Statement, Token
 from sqlparse import tokens as T
 
+import re
 
 class StatementFilter:
     "Filter that split stream at individual statements"
 
     def __init__(self):
-        self._in_declare = False
         self._in_dbldollar = False
-        self._is_create = False
-        self._begin_depth = 0
+        self._in_locking = False
+        self._in_cursor = False
+
+        self.block_stack = []
 
     def _reset(self):
         "Set the filter attributes to its default values"
-        self._in_declare = False
         self._in_dbldollar = False
-        self._is_create = False
-        self._begin_depth = 0
+        self._in_locking = False
+        self._in_cursor = False
+
+        self.block_stack = []
 
     def _change_splitlevel(self, ttype, value):
         "Get the new split level (increase, decrease or remain equal)"
+
+
+        BLOCK_MATCH = {'BEGIN'  :r'END$',
+                       'CASE'   :r'END$',
+                       'IF'     :r'END\s+IF$',
+                       'FOR'    :r'END\s+FOR$',
+                       'WHILE'  :r'END\s+WHILE$',
+                       'REPEAT' :r'END\s+REPEAT$',
+                       'LOOP'   :r'END\s+LOOP$',
+                       '('      :r'\)$'}
         # PostgreSQL
         if (ttype == T.Name.Builtin
             and value.startswith('$') and value.endswith('$')):
@@ -35,35 +48,40 @@ class StatementFilter:
             return 0
 
         # ANSI
-        if ttype not in T.Keyword:
+        if ttype not in T.Keyword and not ttype is T.Punctuation:
             return 0
 
         unified = value.upper()
 
-        if unified == 'DECLARE' and self._is_create:
-            self._in_declare = True
-            return 1
-
-        if unified == 'BEGIN':
-            self._begin_depth += 1
-            if self._in_declare or self._is_create:
-                # FIXME(andi): This makes no sense.
-                return 1
+        # Teradata's LOCKING ROW|TABLE|VIEW|DATABASE FOR ACCESS|READ|WRITE|EXCLUSIVE
+        if unified in ('LOCK','LOCKING'):
+            self._in_locking = True
             return 0
 
-        if unified == 'END':
-            # Should this respect a preceeding BEGIN?
-            # In CASE ... WHEN ... END this results in a split level -1.
-            self._begin_depth = max(0, self._begin_depth - 1)
+        if unified == 'FOR' and self._in_locking:
+            return 0
+
+        if unified in ('ACCESS','READ','WRITE','EXCLUSIVE') and self._in_locking:
+            self._in_locking = False
+            return 0
+
+        # Teradata's CURSOR
+        if unified == 'CURSOR':
+            self._in_cursor = True
+            return 0
+
+        if unified == 'FOR' and self._in_cursor:
+            return 0
+
+
+        # Begin/end of the block
+        if unified in BLOCK_MATCH:
+            self.block_stack.append(unified)
+            return 1
+
+        if len(self.block_stack) > 0 and re.match(BLOCK_MATCH[self.block_stack[-1]],unified):
+            self.block_stack.pop()
             return -1
-
-        if ttype is T.Keyword.DDL and unified.startswith('CREATE'):
-            self._is_create = True
-            return 0
-
-        if (unified in ('IF', 'FOR')
-            and self._is_create and self._begin_depth > 0):
-            return 1
 
         # Default
         return 0

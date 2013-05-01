@@ -32,7 +32,7 @@ Links
 -----
 
 Project Page
-  https://github.com/andialbrecht/sqlparse
+  https://github.com/nonsleepr/sqlparse
 
 Documentation
   http://readthedocs.org/docs/sqlparse/en/latest/
@@ -52,5 +52,5 @@ python-sqlparse is licensed under the BSD license.
 Parts of the code are based on pygments written by Georg Brandl and others.
 pygments-Homepage: http://pygments.org/
 
-.. |buildstatus| image:: https://secure.travis-ci.org/andialbrecht/sqlparse.png?branch=master
-.. _buildstatus: http://travis-ci.org/#!/andialbrecht/sqlparse
+.. |buildstatus| image:: https://secure.travis-ci.org/nonsleepr/sqlparse.png?branch=master
+.. _buildstatus: http://travis-ci.org/#!/nonsleepr/sqlparse

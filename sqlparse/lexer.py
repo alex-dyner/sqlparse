@@ -17,7 +17,8 @@ import sys
 
 from sqlparse import tokens
 from sqlparse.keywords import KEYWORDS, KEYWORDS_COMMON
-from cStringIO import StringIO
+from io import StringIO
+import collections
 
 
 class include(str):
@@ -81,12 +82,12 @@ class LexerMeta(type):
 
             try:
                 rex = re.compile(tdef[0], rflags).match
-            except Exception, err:
+            except Exception as err:
                 raise ValueError(("uncompilable regex %r in state"
                                   " %r of %r: %s"
                                   % (tdef[0], state, cls, err)))
 
-            assert type(tdef[1]) is tokens._TokenType or callable(tdef[1]), \
+            assert type(tdef[1]) is tokens._TokenType or isinstance(tdef[1], collections.Callable), \
                    ('token type must be simple type or callable, not %r'
                     % (tdef[1],))
 
@@ -135,7 +136,7 @@ class LexerMeta(type):
         cls._tmpname = 0
         processed = cls._all_tokens[cls.__name__] = {}
         #tokendefs = tokendefs or cls.tokens[name]
-        for state in cls.tokens.keys():
+        for state in list(cls.tokens.keys()):
             cls._process_state(cls.tokens, processed, state)
         return processed
 
@@ -152,9 +153,7 @@ class LexerMeta(type):
         return type.__call__(cls, *args, **kwds)
 
 
-class Lexer(object):
-
-    __metaclass__ = LexerMeta
+class Lexer(object, metaclass=LexerMeta):
 
     encoding = 'utf-8'
     stripall = False
@@ -191,17 +190,22 @@ class Lexer(object):
             (r'[-]?0x[0-9a-fA-F]+', tokens.Number.Hexadecimal),
             (r'[-]?[0-9]*\.[0-9]+', tokens.Number.Float),
             (r'[-]?[0-9]+', tokens.Number.Integer),
+            # Teradata SQL hexademical leteral string:
+            (r"'.*?[^\\]'X(C[VF]?|B[VF]?|I[124]?)?", tokens.String.Single.Hex),
             # TODO: Backslash escapes?
             (r"(''|'.*?[^\\]')", tokens.String.Single),
             # not a real string literal in ANSI SQL:
-            (r'(""|".*?[^\\]")', tokens.String.Symbol),
+            #(r'(""|".*?[^\\]")', tokens.String.Symbol),
+            (r'(""|".*?[^\\]")', tokens.Name),
             (r'(\[.*[^\]]\])', tokens.Name),
-            (r'(LEFT |RIGHT )?(INNER |OUTER |STRAIGHT)?JOIN\b', tokens.Keyword),
-            (r'END( IF| LOOP)?\b', tokens.Keyword),
-            (r'NOT NULL\b', tokens.Keyword),
-            (r'CREATE( OR REPLACE)?\b', tokens.Keyword.DDL),
+            (r'(LEFT\s|RIGHT\s)?(INNER\s|OUTER\s)?JOIN\b', tokens.Keyword),
+            (r'END(\s+IF|\s+FOR|\s+WHILE|\s+REPEAT|\s+LOOP)?\b', tokens.Keyword),
+            (r'NOT\sNULL\b', tokens.Keyword),
+            (r'CREATE(\sOR REPLACE)?\b', tokens.Keyword.DDL),
             (r'(?<=\.)[^\W\d_]\w*', tokens.Name),
+            (r'FOR\s+(UPDATE|READ\s+ONLY|SQLSTATE)', tokens.Keyword),
             (r'[^\W\d_]\w*', is_keyword),
+            (r'_UNICODE', tokens.Keyword),
             (r'[;:()\[\],\.]', tokens.Punctuation),
             (r'[<>=~!]+', tokens.Operator.Comparison),
             (r'[+/@#%^&|`?^-]+', tokens.Operator),
@@ -229,8 +233,8 @@ class Lexer(object):
         if self.encoding == 'guess':
             try:
                 text = text.decode('utf-8')
-                if text.startswith(u'\ufeff'):
-                    text = text[len(u'\ufeff'):]
+                if text.startswith('\ufeff'):
+                    text = text[len('\ufeff'):]
             except UnicodeDecodeError:
                 text = text.decode('latin1')
         else:
@@ -252,13 +256,13 @@ class Lexer(object):
         Also preprocess the text, i.e. expand tabs and strip it if
         wanted and applies registered filters.
         """
-        if isinstance(text, basestring):
+        if isinstance(text, str):
             if self.stripall:
                 text = text.strip()
             elif self.stripnl:
                 text = text.strip('\n')
 
-            if sys.version_info[0] < 3 and isinstance(text, unicode):
+            if sys.version_info[0] < 3 and isinstance(text, str):
                 text = StringIO(text.encode('utf-8'))
                 self.encoding = 'utf-8'
             else:
@@ -348,7 +352,7 @@ class Lexer(object):
                         pos += 1
                         statestack = ['root']
                         statetokens = tokendefs['root']
-                        yield pos, tokens.Text, u'\n'
+                        yield pos, tokens.Text, '\n'
                         continue
                     yield pos, tokens.Error, text[pos]
                     pos += 1

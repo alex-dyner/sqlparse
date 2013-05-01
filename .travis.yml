@@ -5,13 +5,14 @@ python:
   - "2.7"
   - "pypy"
   - "3.2"
+  - "3.3"
 install:
   - pip install pytest pytest-cov
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.2' ]]; then mkdir -p py3k/ && cp -r tests/ py3k/ && 2to3 -w --no-diffs -n py3k/tests; fi
+  - if [[ $TRAVIS_PYTHON_VERSION =~ \^3\.[23]\$ ]]; then mkdir -p py3k/ && cp -r tests/ py3k/ && 2to3 -w --no-diffs -n py3k/tests; fi
   - python setup.py install
   - cp -r tests/ extras/
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.2' ]]; then cd py3k/ && py.test -v tests; fi
+  - if [[ $TRAVIS_PYTHON_VERSION =~ \^3\.[23]\$ ]]; then cd py3k/ && py.test -v tests; fi
   # Change directory to avoid that the local sqlparse module is tested
   # instead of the installed one. This is relevant for the 2to3 version.
-  - if [[ $TRAVIS_PYTHON_VERSION != '3.2' ]]; then cd extras/ && py.test -v --cov=sqlparse tests; fi
+  - if ! [[ $TRAVIS_PYTHON_VERSION =~ \^3\.[23]\$ ]]; then cd extras/ && py.test -v --cov=sqlparse tests; fi

@@ -1,6 +1,9 @@
 from sqlparse import tokens
 
 KEYWORDS = {
+
+    '_UNICODE': tokens.Keyword,
+
     'ABORT': tokens.Keyword,
     'ABS': tokens.Keyword,
     'ABSOLUTE': tokens.Keyword,
@@ -159,6 +162,7 @@ KEYWORDS = {
     'EXTRACT': tokens.Keyword,
 
     'FALSE': tokens.Keyword,
+    'FALLABACK': tokens.Keyword,
     'FETCH': tokens.Keyword,
     'FINAL': tokens.Keyword,
     'FIRST': tokens.Keyword,
@@ -179,7 +183,6 @@ KEYWORDS = {
     'GLOBAL': tokens.Keyword,
     'GO': tokens.Keyword,
     'GOTO': tokens.Keyword,
-    'GRANT': tokens.Keyword,
     'GRANTED': tokens.Keyword,
     'GROUPING': tokens.Keyword,
 
@@ -219,6 +222,9 @@ KEYWORDS = {
     'ISOLATION': tokens.Keyword,
     'ITERATE': tokens.Keyword,
 
+    # 'J': tokens.Keyword,
+    'JOURNAL': tokens.Keyword,
+
     # 'K': tokens.Keyword,
     'KEY': tokens.Keyword,
     'KEY_MEMBER': tokens.Keyword,
@@ -242,9 +248,11 @@ KEYWORDS = {
     'LOCATION': tokens.Keyword,
     'LOCATOR': tokens.Keyword,
     'LOCK': tokens.Keyword,
+    'LOCKING': tokens.Keyword,
     'LOWER': tokens.Keyword,
 
     # 'M': tokens.Keyword,
+    'MACRO': tokens.Keyword.Object.Macro,
     'MAP': tokens.Keyword,
     'MATCH': tokens.Keyword,
     'MAXVALUE': tokens.Keyword,
@@ -262,6 +270,7 @@ KEYWORDS = {
     'MORE': tokens.Keyword,
     'MOVE': tokens.Keyword,
     'MUMPS': tokens.Keyword,
+    'MULTISET': tokens.Keyword,
 
     'NAMES': tokens.Keyword,
     'NATIONAL': tokens.Keyword,
@@ -328,7 +337,7 @@ KEYWORDS = {
     'PRIOR': tokens.Keyword,
     'PRIVILEGES': tokens.Keyword,
     'PROCEDURAL': tokens.Keyword,
-    'PROCEDURE': tokens.Keyword,
+    'PROCEDURE': tokens.Keyword.Object.Procedure,
     'PUBLIC': tokens.Keyword,
 
     'RAISE': tokens.Keyword,
@@ -352,7 +361,6 @@ KEYWORDS = {
     'RETURNED_OCTET_LENGTH': tokens.Keyword,
     'RETURNED_SQLSTATE': tokens.Keyword,
     'RETURNS': tokens.Keyword,
-    'REVOKE': tokens.Keyword,
     'RIGHT': tokens.Keyword,
     'ROLE': tokens.Keyword,
     'ROLLBACK': tokens.Keyword,
@@ -421,9 +429,9 @@ KEYWORDS = {
     'SYSTEM': tokens.Keyword,
     'SYSTEM_USER': tokens.Keyword,
 
-    'TABLE': tokens.Keyword,
+    'TABLE': tokens.Keyword.Object.Table,
     'TABLE_NAME': tokens.Keyword,
-    'TEMP': tokens.Keyword,
+    ' TEMP': tokens.Keyword,
     'TEMPLATE': tokens.Keyword,
     'TEMPORARY': tokens.Keyword,
     'TERMINATE': tokens.Keyword,
@@ -478,10 +486,11 @@ KEYWORDS = {
     'VARIABLE': tokens.Keyword,
     'VERBOSE': tokens.Keyword,
     'VERSION': tokens.Keyword,
-    'VIEW': tokens.Keyword,
+    'VIEW': tokens.Keyword.Object.View,
     'VOLATILE': tokens.Keyword,
 
     'WHENEVER': tokens.Keyword,
+    'WHILE': tokens.Keyword,
     'WITH': tokens.Keyword,
     'WITHOUT': tokens.Keyword,
     'WORK': tokens.Keyword,
@@ -527,10 +536,15 @@ KEYWORDS_COMMON = {
     'INSERT': tokens.Keyword.DML,
     'DELETE': tokens.Keyword.DML,
     'UPDATE': tokens.Keyword.DML,
-    'REPLACE': tokens.Keyword.DML,
+    'MERGE': tokens.Keyword.DML,
+
+    'REPLACE': tokens.Keyword.DDL,
     'DROP': tokens.Keyword.DDL,
     'CREATE': tokens.Keyword.DDL,
     'ALTER': tokens.Keyword.DDL,
+
+    'GRANT': tokens.Keyword.DCL,
+    'REVOKE': tokens.Keyword.DCL,
 
     'WHERE': tokens.Keyword,
     'FROM': tokens.Keyword,

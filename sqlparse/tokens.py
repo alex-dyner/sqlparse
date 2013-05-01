@@ -75,7 +75,17 @@ Token.Number = Number
 # SQL specific tokens
 DML = Keyword.DML
 DDL = Keyword.DDL
+DCL = Keyword.DCL
 Command = Keyword.Command
+
+Hex = String.Hex
+
+Object = Keyword.Object
+Table = Keyword.Object.Table
+View = Keyword.Object.View
+Procedure = Keyword.Object.Procedure
+Macro = Keyword.Object.Macro
+#Index = Keyword.Object.Index
 
 Group = Token.Group
 Group.Parenthesis = Token.Group.Parenthesis
